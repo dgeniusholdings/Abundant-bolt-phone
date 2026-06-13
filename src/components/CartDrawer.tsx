@@ -1,7 +1,11 @@
 import { X, Minus, Plus, Trash2, ShoppingBag } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 
-export function CartDrawer() {
+interface CartDrawerProps {
+  onCheckout?: () => void;
+}
+
+export function CartDrawer({ onCheckout }: CartDrawerProps) {
   const {
     items,
     isOpen,
@@ -146,7 +150,13 @@ export function CartDrawer() {
               </div>
 
               {/* Checkout button */}
-              <button className="btn-primary w-full text-center">
+              <button
+                onClick={() => {
+                  closeCart();
+                  onCheckout?.();
+                }}
+                className="btn-primary w-full text-center"
+              >
                 Proceed to Checkout
               </button>
               <button

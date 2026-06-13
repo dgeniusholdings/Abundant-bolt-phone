@@ -15,24 +15,43 @@ import {
   Footer,
 } from './components';
 import { AdminDashboard } from './pages/AdminDashboard';
-import { products, trendingProducts } from './data';
+import { CheckoutPage } from './pages/CheckoutPage';
+import { useStorefrontProducts } from './hooks/useStorefrontProducts';
+import { products as staticProducts, trendingProducts } from './data';
+
+type View = 'store' | 'admin' | 'checkout';
 
 function App() {
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [view, setView] = useState<View>('store');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { products: dbProducts, featuredProducts } = useStorefrontProducts();
 
-  if (isAdmin) {
+  const products = dbProducts.length > 0 ? dbProducts : staticProducts;
+  const featured = featuredProducts.length > 0 ? featuredProducts : products.slice(0, 12);
+
+  if (view === 'admin') {
     return (
       <CartProvider>
-        <AdminDashboard onBack={() => setIsAdmin(false)} />
+        <AdminDashboard onBack={() => setView('store')} />
+      </CartProvider>
+    );
+  }
+
+  if (view === 'checkout') {
+    return (
+      <CartProvider>
+        <CheckoutPage
+          onBack={() => setView('store')}
+          onComplete={() => setView('store')}
+        />
       </CartProvider>
     );
   }
 
   const filteredProducts = useMemo(() => {
-    let result = products;
+    let result = featured;
 
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
@@ -48,7 +67,7 @@ function App() {
     }
 
     return result;
-  }, [searchQuery, selectedCategory]);
+  }, [searchQuery, selectedCategory, featured]);
 
   const handleCategoryClick = (categoryId: string) => {
     setSelectedCategory(categoryId || null);
@@ -99,11 +118,11 @@ function App() {
           onCategoryClick={handleCategoryClick}
         />
 
-        <CartDrawer />
+        <CartDrawer onCheckout={() => setView('checkout')} />
 
         {/* Admin access button */}
         <button
-          onClick={() => setIsAdmin(true)}
+          onClick={() => setView('admin')}
           title="Admin Dashboard"
           className="fixed bottom-6 right-6 z-30 w-10 h-10 bg-ink-800 hover:bg-ink-900 text-white rounded-full shadow-lg flex items-center justify-center transition-all hover:scale-110 active:scale-95"
         >
